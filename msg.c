@@ -17,7 +17,6 @@ void send_message(int qid, struct mymsgbuf *qbuf, long type, char *text);
 void read_message(int qid, struct mymsgbuf *qbuf, long type);
 void remove_queue(int qid);
 void change_queue_mode(int qid, char *mode);
-void usage(void);
 
 int main(int argc, char *argv[])
 {
@@ -25,18 +24,9 @@ int main(int argc, char *argv[])
   int    msgqueue_id;
   struct mymsgbuf qbuf;
 
-  if (argc == 1)
-  {
-    usage();
-    exit(1);
-  }
 
   key = ftok(".", 'm');
-
-  if ((msgqueue_id = msgget(key, IPC_CREAT | 0660)) == -1) {
-    perror("msgget");
-    exit(1);
-  }
+  msgqueue_id = msgget(key, IPC_CREAT | 0660);
 
   switch(tolower(argv[1][0]))
   {
@@ -53,7 +43,6 @@ int main(int argc, char *argv[])
       change_queue_mode(msgqueue_id, argv[2]);
       break;
     default:
-      usage();
       exit(1);
   }
 
@@ -65,11 +54,7 @@ void send_message(int qid, struct mymsgbuf *qbuf, long type, char *text)
   printf("Sending a message ...\n");
   qbuf->mtype = type;
   strcpy(qbuf->mtext, text);
-  if ((msgsnd(qid, (struct msgbuf *)qbuf, strlen(qbuf->mtext)+1, 0)) == -1)
-  {
-    perror("msgsnd");
-    exit(1);
-  }
+  msgsnd(qid, (struct msgbuf *)qbuf, strlen(qbuf->mtext)+1, 0);
 }
 
 void read_message(int qid, struct mymsgbuf *qbuf, long type)
@@ -92,3 +77,4 @@ void change_queue_mode(int qid, char *mode)
   sscanf(mode, "%ho", &myqueue_ds.msg_perm.mode);
   msgctl(qid, IPC_SET, &myqueue_ds);
 }
+
